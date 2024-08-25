@@ -4,14 +4,16 @@ from constants import *
 from player import Player
 from asteroid import Asteroid
 from asteroidfield import AsteroidField
+from userinterface import UserInterface
 from shot import Shot
+import event_constants
 
 def main():
     print("Starting asteroids!")
-    print("Screen width:", SCREEN_WIDTH)
     print("Screen height:", SCREEN_HEIGHT)
 
     pygame.init()
+    pygame.display.set_caption("Asteroids")
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     clock = pygame.time.Clock()
     dt = 0
@@ -26,6 +28,8 @@ def main():
     AsteroidField.containers = (updateable)
     Shot.containers = (shots, updateable, drawable)
     
+    ui = UserInterface()
+    
     player = Player(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
     asteroid_field = AsteroidField()
     
@@ -33,8 +37,12 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return
+            if event.type == event_constants.DESTROY_ASTEROID:
+                ui.addKillToScore()
         
         screen.fill((0,0,0))
+        ui.update(dt)
+        ui.draw(screen)
         
         for u in updateable:
             u.update(dt)

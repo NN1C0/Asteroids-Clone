@@ -3,6 +3,7 @@ import random
 
 from circleshape import CircleShape
 from constants import ASTEROID_MIN_RADIUS
+from event_constants import DESTROY_ASTEROID
 
 
 class Asteroid(CircleShape):  
@@ -18,6 +19,7 @@ class Asteroid(CircleShape):
     def split(self):
         super().kill()
         if self.radius <= ASTEROID_MIN_RADIUS:
+            pygame.event.post(pygame.Event(DESTROY_ASTEROID))
             return
         spawn_angle = random.uniform(20, 50)
         angle1 = pygame.Vector2(self.velocity).rotate(spawn_angle)
