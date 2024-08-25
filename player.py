@@ -8,6 +8,7 @@ from constants import (
     PLAYER_SHOOT_SPEED,
     PLAYER_SHOOT_COOLDOWN,
     )
+import event_constants
 
 class Player(CircleShape):
     def __init__(self, x, y):
@@ -15,6 +16,10 @@ class Player(CircleShape):
         self.position = pygame.Vector2(x, y)
         self.rotation = 0
         self.timer = 0
+        self.color = "white"
+        
+        self.health = 100
+        self.is_invincible = False
     
     def triangle(self):
         forward = pygame.Vector2(0, 1).rotate(self.rotation)
@@ -25,7 +30,11 @@ class Player(CircleShape):
         return [a, b, c]
     
     def draw(self, screen):
-        pygame.draw.polygon(screen, "white", self.triangle(), 2)
+        if self.is_invincible:
+            self.color = "red"
+        else:
+            self.color = "white"
+        pygame.draw.polygon(screen, self.color, self.triangle(), 2)
         
     def rotate(self, dt):
         self.rotation += PLAYER_TURN_SPEED * dt
@@ -39,6 +48,15 @@ class Player(CircleShape):
             shot = Shot(self.position.x, self.position.y)
             shot.velocity = pygame.Vector2(0, 1).rotate(self.rotation) * PLAYER_SHOOT_SPEED
             self.timer = PLAYER_SHOOT_COOLDOWN
+    
+    def receive_damage(self, amount):
+        if not self.is_invincible:
+            self.is_invincible = True
+            self.health -= amount
+            pygame.event.post(pygame.Event(event_constants.UPDATE_HEALTHBAR, {"new_health": self.health}))
+            pygame.time.set_timer(pygame.Event(event_constants.PLAYER_VULNERABLE), 1500, 1)
+            if self.health <= 0:
+                pygame.event.post(pygame.Event(event_constants.PLAYER_DEAD))
         
     def update(self, dt):
         keys = pygame.key.get_pressed()

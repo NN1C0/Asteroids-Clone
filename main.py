@@ -38,7 +38,14 @@ def main():
             if event.type == pygame.QUIT:
                 return
             if event.type == event_constants.DESTROY_ASTEROID:
-                ui.addKillToScore()
+                ui.add_kill_to_score()
+            if event.type == event_constants.UPDATE_HEALTHBAR:
+                ui.update_health_bar(player.health)
+            if event.type == event_constants.PLAYER_VULNERABLE:
+                player.is_invincible = False
+            if event.type == event_constants.PLAYER_DEAD:
+                print("Game Over")
+                sys.exit()
         
         screen.fill((0,0,0))
         ui.update(dt)
@@ -50,8 +57,8 @@ def main():
         # Check for asteroid collisons
         for a in asteroids:
             if player.has_collided(a):
-                print("Game over!")
-                sys.exit()
+                player.receive_damage(a.damage)
+                a.kill()
             
             for s in shots:
                 if s.has_collided(a):
