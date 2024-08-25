@@ -20,8 +20,8 @@ class UserInterface(pygame_gui.UIManager):
         
     def add_kill_to_score(self):
         self.score += 10
-        self.score_label.set_text(f"Score: {self.score}")
+        self.score_label.set_text(f"Score: {int(self.score)}")
         
     def update_health_bar(self, new_health):
         self.health = new_health
-        self.health_label.set_text(f"Health: {self.health}")
+        self.health_label.set_text(f"Health: {int(self.health)}")
