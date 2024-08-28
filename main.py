@@ -7,6 +7,7 @@ from asteroidfield import AsteroidField
 from userinterface import UserInterface
 from shot import Shot
 import event_constants
+import pygame_gui
 
 def main():
     print("Starting asteroids!")
@@ -17,6 +18,7 @@ def main():
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     clock = pygame.time.Clock()
     dt = 0
+    is_paused = False
     
     updateable = pygame.sprite.Group()
     drawable = pygame.sprite.Group()
@@ -35,8 +37,12 @@ def main():
     
     while(True):
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+            if event.type == pygame.QUIT or event.type == event_constants.GAME_QUIT:
                 return
+            if event.type == event_constants.MESSAGE_LABEL_SHOW:
+                ui.show_message(event.message_text)
+            if event.type == event_constants.MESSAGE_LABEL_HIDE:
+                ui.hide_message()
             if event.type == event_constants.DESTROY_ASTEROID:
                 ui.add_kill_to_score()
             if event.type == event_constants.UPDATE_HEALTHBAR:
@@ -44,25 +50,40 @@ def main():
             if event.type == event_constants.PLAYER_VULNERABLE:
                 player.is_invincible = False
             if event.type == event_constants.PLAYER_DEAD:
-                print("Game Over")
-                sys.exit()
+                ui.show_game_over_screen(ui.score)
+                is_paused = True
+            
+            ui.gui_manager.process_events(event)      
+            if event.type == pygame_gui.UI_BUTTON_PRESSED:
+                if event.ui_element == ui.restart_button:
+                    ui.hide_game_over_screen()
+                    player.reset()
+                    ui.reset()
+                    is_paused = False
+                    asteroids.empty()
+                if event.ui_element == ui.quit_button:
+                    return
+                if event.ui_element == ui.continue_button:
+                    is_paused = False
         
         screen.fill((0,0,0))
         ui.update(dt)
         ui.draw(screen)
         
-        for u in updateable:
-            u.update(dt)
-            
-        # Check for asteroid collisons
-        for a in asteroids:
-            if player.has_collided(a):
-                player.receive_damage(a.damage)
-                a.kill()
-            
-            for s in shots:
-                if s.has_collided(a):
-                    a.split()
+        if not is_paused:
+            for u in updateable:
+                u.update(dt)
+                
+            # Check for asteroid collisons
+            for a in asteroids:
+                if player.has_collided(a):
+                    player.receive_damage(a.damage)
+                    if not player.is_invincible:
+                        a.kill()
+                
+                for s in shots:
+                    if s.has_collided(a):
+                        a.split()
             
         for d in drawable: 
             d.draw(screen)   

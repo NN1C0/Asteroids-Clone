@@ -7,18 +7,22 @@ from constants import (
     PLAYER_SPEED, 
     PLAYER_SHOOT_SPEED,
     PLAYER_SHOOT_COOLDOWN,
+    PLAYER_STARTING_HEALTH,
+    SCREEN_HEIGHT,
+    SCREEN_WIDTH
     )
 import event_constants
+from events import trigger_custom_event
 
 class Player(CircleShape):
-    def __init__(self, x, y):
+    def __init__(self, x = SCREEN_WIDTH / 2, y = SCREEN_HEIGHT / 2):
         super().__init__(x, y, PLAYER_RADIUS)
         self.position = pygame.Vector2(x, y)
         self.rotation = 0
         self.timer = 0
         self.color = "white"
         
-        self.health = 100
+        self.health = PLAYER_STARTING_HEALTH
         self.is_invincible = False
     
     def triangle(self):
@@ -53,10 +57,11 @@ class Player(CircleShape):
         if not self.is_invincible:
             self.is_invincible = True
             self.health -= amount
-            pygame.event.post(pygame.Event(event_constants.UPDATE_HEALTHBAR, {"new_health": self.health}))
+            trigger_custom_event(event_constants.UPDATE_HEALTHBAR, {"new_health": self.health})
             pygame.time.set_timer(pygame.Event(event_constants.PLAYER_VULNERABLE), 1500, 1)
+            trigger_custom_event(event_constants.MESSAGE_LABEL_SHOW, {"message_text": "We have been hit!"})
             if self.health <= 0:
-                pygame.event.post(pygame.Event(event_constants.PLAYER_DEAD))
+                trigger_custom_event(event_constants.PLAYER_DEAD)
         
     def update(self, dt):
         keys = pygame.key.get_pressed()
@@ -73,3 +78,6 @@ class Player(CircleShape):
             self.rotate(dt)
         if keys[pygame.K_SPACE]:
             self.shoot()
+            
+    def reset(self):
+        self.__init__()
